@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "cyTube Extension",
+  "version": "0.1.0",
+  "author": "Kir O",
+  "description": "Test extension",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://tv.2ch.hk/r/*", "https://cytu.be/r/*"],
+      "js": ["content.js"],
+      "css": ["content-styles.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "permissions": [
+    "tabs",
+    "storage",
+    "notifications",
+    "contextMenus",
+    "scripting",
+    "clipboardWrite"
+  ],
+
+  "host_permissions": [
+    "http://127.0.0.1:5500/index.html",
+    "https://tv.2ch.hk/r/*"
+  ],
+  "action": {
+    "default_icon": {
+      "16": "assets/main_icon_16.png",
+      "24": "assets/main_icon_24.png",
+      "32": "assets/main_icon_32.png",
+      "128": "assets/main_icon_128.png"
+    },
+    "default_title": "Click",
+    "default_popup": "./popup/popup.html"
+  }
+}
