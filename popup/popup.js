@@ -63,8 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  chrome.notifications.clear(COPIED_TO_CLIPBOARD_ID);
-
   chrome.action.setBadgeText({
     text: '',
   });

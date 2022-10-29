@@ -2,10 +2,48 @@ const COPIED_TO_CLIPBOARD_ID = 'copied';
 const CLEARED_LIST_ID = 'cleared_list';
 const SKIP_VIDEO_ID = 'skiped';
 
-// const content_matches = chrome.runtime.getManifest().content_scripts[0].matches;
-// const urlRegexArr = content_matches.map((item) => new RegExp(item, 'ig'));
+const STORAGE_ACTIONS = {
+  VIDEO_TITLE_UPDATE: 'VIDEO_TITLE_UPDATE',
+};
 
-let badgeCounter = 0;
+const reducer = async (action = '', data) => {
+  if (action === STORAGE_ACTIONS.VIDEO_TITLE_UPDATE && data.newValue) {
+    const localObj = await chrome.storage.local.get('videoState');
+
+    const videoState = Object.keys(localObj).length
+      ? JSON.parse(localObj['videoState'])
+      : [];
+
+    videoState.push(data.newValue);
+
+    chrome.storage.local.set({
+      videoState: JSON.stringify(videoState),
+    });
+
+    const badgeCounterObj = await chrome.storage.local.get('badgeCounter');
+    const updatedBadgeCouter = badgeCounterObj.badgeCounter + 1 || 1;
+
+    chrome.action.setBadgeText({
+      text: String(updatedBadgeCouter),
+    });
+
+    chrome.action.setBadgeBackgroundColor({ color: '#880ED4' });
+
+    await chrome.storage.local.set({
+      badgeCounter: updatedBadgeCouter,
+    });
+  }
+
+  return Promise.resolve(true);
+};
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('installed');
+
+  chrome.storage.sync.clear();
+  chrome.storage.local.clear();
+  chrome.storage.session.clear();
+});
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === COPIED_TO_CLIPBOARD_ID) {
@@ -52,7 +90,9 @@ chrome.runtime.onMessage.addListener((message) => {
         iconUrl: chrome.runtime.getURL('/assets/remove_128.png'),
       },
       (noteId) => {
-        badgeCounter = 0;
+        chrome.storage.local.set({
+          badgeCounter: 0,
+        });
         setTimeout(() => {
           chrome.notifications.clear(noteId);
         }, 3000);
@@ -61,49 +101,7 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-const tabs = {};
-
-chrome.tabs.onUpdated.addListener((tabId, _, tab) => {
-  tabs[tabId] = tab.url;
-});
-
-chrome.tabs.onRemoved.addListener((tabId) => {
-  const url = tabs[tabId];
-
-  /*
-  if (urlRegexArr.some((item) => item.test(url))) {
-    console.log('remove');
-    chrome.storage.sync.clear();
-    chrome.storage.local.clear();
-    chrome.storage.session.clear();
-  }
-  */
-});
-
-const reducer = (action = '', data) => {
-  if (action === 'VIDEO_TITLE_UPDATE') {
-    if (data.newValue) {
-      chrome.storage.local.get('videoState').then((obj) => {
-        const videoState = Object.keys(obj).length
-          ? JSON.parse(obj['videoState'])
-          : [];
-
-        videoState.push(data.newValue);
-
-        chrome.storage.local.set({
-          videoState: JSON.stringify(videoState),
-        });
-
-        chrome.action.setBadgeText({
-          text: String(++badgeCounter),
-        });
-        chrome.action.setBadgeBackgroundColor({ color: '#880ED4' });
-      });
-    }
-  }
-};
-
-chrome.storage.sync.onChanged.addListener((change) => {
-  const action = change.action?.newValue || 'VIDEO_TITLE_UPDATE';
-  reducer(action, change.data);
+chrome.storage.sync.onChanged.addListener(async (change) => {
+  const actionObj = await chrome.storage.sync.get('action');
+  await reducer(actionObj.action, change.data);
 });

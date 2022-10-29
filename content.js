@@ -2,6 +2,10 @@ const id = 'currenttitle';
 const spikBtnId = 'voteskip';
 const SKIP_VIDEO_ID = 'skip';
 
+const STORAGE_ACTIONS = {
+  VIDEO_TITLE_UPDATE: 'VIDEO_TITLE_UPDATE',
+};
+
 const CONSTANTS = {
   skipTitle: {
     'https://tv.2ch.hk/r/*': 'Currently Playing',
@@ -39,24 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const titleChangeCb = () => {
+  const titleChangeCb = async () => {
     if (videoTitle.innerHTML.includes(includedTitleToSkip)) {
       // first render is Currently Playing in title, we need second render with ru title
       return;
     }
 
-    chrome.storage.sync
-      .set({
-        action: 'VIDEO_TITLE_UPDATE',
-        data: {
-          title: videoTitle.innerText
-            .replace('Сейчас: ', '')
-            .replace('Currently Playing: ', ''),
-        },
-      })
-      .then(() => {
-        console.log('VideoTitle was added to storage');
-      });
+    await chrome.storage.sync.set({
+      action: STORAGE_ACTIONS.VIDEO_TITLE_UPDATE,
+      data: {
+        title: videoTitle.innerText
+          .replace('Сейчас: ', '')
+          .replace('Currently Playing: ', ''),
+      },
+    });
+
+    console.log('VideoTitle was added to storage');
   };
 
   const observer = new MutationObserver(titleChangeCb);
