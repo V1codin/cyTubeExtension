@@ -1,6 +1,6 @@
 # Chrome extension
 
-## Chrome extension for trackітп changes of videos or movies in playlist at cyTube-like sites
+## Chrome extension for tracking changes of videos or movies in playlist at cyTube-like sites
 
 ![homePage](./assets/readme/cyTube_home_page.JPG)
 
