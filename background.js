@@ -21,7 +21,10 @@ const reducer = async (action = '', data) => {
     });
 
     const badgeCounterObj = await chrome.storage.local.get('badgeCounter');
-    const updatedBadgeCouter = badgeCounterObj.badgeCounter + 1 || 1;
+    const updatedBadgeCouter =
+      badgeCounterObj.badgeCounter >= 99
+        ? 99
+        : badgeCounterObj.badgeCounter + 1 || 1;
 
     chrome.action.setBadgeText({
       text: String(updatedBadgeCouter),
